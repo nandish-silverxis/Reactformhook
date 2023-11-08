@@ -4,16 +4,27 @@ import { Outlet, useParams } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import { useNavigate } from 'react-router-dom'
 import Select from 'react-select'
+import {useForm} from "react-hook-form"
 
 
 
 export default function Edituser() {
     const { id } = useParams();
     const [userId, setUserId] = useState(-1)
-    const[edituser,setEdituser]=useState( {name:'',email:'',mobile:'',password:'',confirmpassword:'',dob:'',Country:'',gender:'male'})
+    const[edituser,setEdituser]=useState( {name:'',email:'',mobile:'',password:'',confirmpassword:'',dob:'',Country:'',gender:'male',title:"",note:" "})
     const navigate = useNavigate('')
     const[massage,setMassage]=useState('')
     const [error,setError]=useState({})
+    const intitialValue = {
+        title:"",
+        note:"",
+        id1:Math.random()*10,
+    }
+    const [notes,setNotes]=useState([intitialValue])
+    
+   
+    const{ register, watch, setValue ,formState:{errors},handleSubmit}=useForm();
+    
 
     useEffect (()=>
     {
@@ -35,7 +46,18 @@ export default function Edituser() {
         }) 
         const resData = await reqData.json();
         console.log(resData.data)
-        setEdituser(resData.data);
+        const details=resData.data;
+        console.log(details);
+
+        
+        setValue("name",details.name)
+        setValue("email",details.email)
+        setValue("dob",details.dob)
+        setValue("mobile",details.mobile)
+        setValue("gender",details.gender)
+        setValue("id",details.id)
+       
+        
 
         }catch (error)
         {
@@ -66,16 +88,41 @@ export default function Edituser() {
     }
       
 
-    const handelinput = (e)=>
-    {
-        setEdituser({...edituser,[e.target.name]:e.target.value})
-    }
-    
+    // const handelinput = (e)=>
+    // {
+    //     setEdituser({...edituser,[e.target.name]:e.target.value})
+    //     setStates({...states,[e.target.name]:e.target.value})
 
-    const handelupdate = async (e) =>
+    // }
+    
+    const handleClick = (e) =>
     {
         e.preventDefault();
-        const editinputvalue={user_name:edituser.name,email:edituser.email,mobile:edituser.mobile,dob:edituser.dob,gender:edituser.gender,id:id}
+        // setNotes([...notes, states])
+        // setStates({
+        //     title:"",
+        //     note:"",
+
+        // })
+        setNotes([...notes,intitialValue])
+        // intitialValue({
+        //         title:"",
+        //         note:"",
+    
+        //     })
+
+    }
+
+    const onSubmit = async (editinputvalue) =>
+    {
+        // e.preventDefault();
+        // const editinputvalue={user_name:edituser.name,email:edituser.email,mobile:edituser.mobile,dob:edituser.dob,gender:edituser.gender,id:id}
+        // setNotes([...notes, states])
+        // setStates({
+        //     title:"",
+        //     note:"",
+
+        // })
         console.log(editinputvalue)
         try{
 
@@ -109,7 +156,16 @@ export default function Edituser() {
             ...{"gender":val},
           }));
     }
+    const handalDelete = (id1)=>{
 
+     const leftnote = notes.filter(note=> note.id1 !== id1)
+     console.log(leftnote)
+     setNotes(leftnote)
+
+    
+     
+    }
+console.log(errors)
   return (
 
     <div className="hero3">
@@ -121,15 +177,23 @@ export default function Edituser() {
             <p className='text-success'>{massage}</p>
       
        <section className='container my-3 bg-dark w-50 text-light p-2'>
-                            <form className="row g-1 p-2 " onSubmit={handelupdate}>
+                            <form className="row g-1 p-2 " onSubmit={handleSubmit(onSubmit)}>
                         <div className="col-md-6">
                             <label  className="form-label"><b>User_name:</b></label>
-                            <input type="text" className="form-control" name="name" value={edituser.name} onChange={handelinput}/>
+                            <input type="text" className="form-control" {...register("name",{required:true,pattern: /^[a-zA-Z0-9_]+$/i})} />
+                            <span className='text-danger'>
+                                {errors.user_name?.type==="required" && " Name is Required"}
+                                {errors.user_name?.type==="pattern" && "Enter Please Valid Username "}
+                            </span>
                             
                         </div>
                         <div className="col-md-6">
                             <label  className="form-label"><b>Email:</b></label>
-                            <input type="email" name='email' className="form-control" value={edituser.email} onChange={handelinput} />
+                            <input type="email" {...register("email",{required:true,pattern: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/i})} className="form-control"/>
+                            <span className='text-danger'>
+                                {errors.email?.type==="required" && " Email is Required"}
+                                {errors.email?.type==="pattern" && "Enter Please Valid Email "}
+                            </span>
                            
                         </div>
 
@@ -139,14 +203,22 @@ export default function Edituser() {
                     
                         <div className="col-12 mt-4">
                             <label className="form-label"style={{marginRight:"450px"}}><b>Mobile No:</b></label>
-                            <input type="number" className="form-control" name="mobile" value={edituser.mobile} onChange={handelinput} />
+                            <input type="number" className="form-control" {...register("mobile",{required:true,minLength:10,maxLength:12})} />
+                            <span className='text-danger'>
+                                {errors.mobile?.type==="required" && " Phone Number is Required"}
+                                
+                                
+                            </span>
                            
                         </div>
 
 
                         <div className="col-12 mt-4">
                             <label  className="form-label" style={{marginRight:"450px"}}><b>Date_Of_Birth:</b></label>
-                            <input type="date" className="form-control" name="dob"  value={edituser.dob} onChange={handelinput} />
+                            <input type="date" className="form-control" {...register("dob",{required:true})}  />
+                            <span className='text-danger'>
+                                {errors.dob?.type==="required" && " Date of Birth is Required"}
+                            </span>
                         </div>
 
                         
@@ -157,31 +229,82 @@ export default function Edituser() {
                                 <legend className="col-form-label col-sm-2 pt-4 " ><b>Gender</b>:</legend>
                                 <div className="row mt-4 mb-2 mx-3">
                                 <div className="form-check col-sm-2 me-4">
-                                    <input className="form-check-input" type="radio" name="x" value={"male"} checked={(edituser.gender=="male")?true:false} onChange={e=>updateGenderState("male")} />
+                                    <input className="form-check-input" type="radio" {...register("gender",{required:true})} value={"male"}  />
                                     <label className="form-check-label" >
                                     Male
                                     </label>
                                 </div>
                                 <div className="form-check col-sm-2 me-4">
-                                    <input className="form-check-input" type="radio" name="x" id="gridRadios2" value="female"  checked={(edituser.gender=="female")?true:false} onChange={e=>updateGenderState("female")}/>
-                                    <label className="form-check-label" for="gridRadios2">
+                                    <input className="form-check-input" type="radio" {...register("gender",{required:true})} id="gridRadios2" value="female" />
+                                    <label className="form-check-label" htmlFor="gridRadios2">
                                     Female
                                     </label>
                                 </div>
                                 <div className="form-check  col-sm-2 me-4">
-                                    <input className="form-check-input" type="radio" name="x" id="gridRadios3" value="other" checked={(edituser.gender=="other")?true:false}  onChange={e=>updateGenderState("other")}/>
-                                    <label className="form-check-label" for="gridRadios3">
+                                    <input className="form-check-input" type="radio" {...register("gender",{required:true})} id="gridRadios3" value="other" />
+                                    <label className="form-check-label" htmlFor="gridRadios3">
                                     Other
                                     </label>
                                 </div>
                                 </div>
                             </fieldset> }
-                            
+
+                           
+
+
+
+
+
+
+                       <div className='notes-container d-flex flex-wrap ' >
+                       <label  className="form-label" style={{marginRight:"450px"}}><b>Notes:</b></label>
+                       { notes.map((note,i)=>
+                       (
+                        <div className='note w-50 mt-2   p-2  py-10 border border-primary rounded' key={i}>
+                         
+                        {
+                            i !==0 ?<button type='button' className='delete-note btn-close btn-close-white  aria-label=Close 'style={{marginLeft:"230px"}} onClick={()=>handalDelete(note.id1)}></button>
+                            :<p></p>
+                        }
+                          
+
+                            <input type="text" placeholder='Title' className="form-control" {...register(`notes.${i}.title`,{required:true} )} />
+                            <span className='text-danger'>
+                                {errors?.notes?.[i]?.title?.type==="required" && "title is Required"}
+                            </span>
+
+
+                           <textarea  cols="32" rows="5" placeholder='Note' className='mt-3' {...register(`notes.${i}.note`,{required:true})}  />
+                            <span className='text-danger'>
+                                {errors?.notes?.[i]?.note?.type==="required" ? "Discription is Required":""}
+                            </span>
 
                             
+                            
+                            <h3 className='font-bold text-1xl pb-2'>{note.title}</h3>
+                            <p>{note.note}</p>
+
+                        </div>
+                       ))}
+                             <div className='col-12 '>
+                           <button  onClick={handleClick} className='btn btn-primary mt-2 float-end'>Add More</button>
+                           </div> 
+                       </div>
 
 
-                        
+
+
+
+
+
+
+
+
+
+
+
+                      
+
                         <div className="col-12 ">
                             <button type="submit" className="btn btn-success">Update</button>
                         </div>
@@ -193,6 +316,6 @@ export default function Edituser() {
             </div>
             </div>
         
-    
+        
   )
 }
